@@ -42,6 +42,7 @@ The Suggestion base class includes the following variables:
  - `parameter:` The parameter which will be passed into the `function` classmethod on execution. The `function`
  will be executed within `CommandHandler.execute_function(Suggestion)` in `spotlight/handler.py` **Set as `""` if there is no classmethod to be executed or if the classmethod does not take any parameters.**
  - `setting: str` **Possible Settings:** `exe`: will execute the `function` when clicked, `fill`: will fill the prompt with text from `fill_str`, `none`: does nothing when clicked.
- - `fill_str: ` A string which will fill the prompt if `setting` is set to `"fill"` and the suggestion is clicked.
+ - `fill_str: bool` A string which will fill the prompt if `setting` is set to `"fill"` and the suggestion is clicked.
+ - `stay_open: bool` Controls whether or not the prompt closes when a suggestion is executed (`settings` must be set to `exe`).
 
  ![Spotlightify](assets/img/example_suggestion.jpg)
