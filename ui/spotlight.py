@@ -3,31 +3,30 @@ from PyQt5.QtWidgets import QApplication, QWidget, QDesktopWidget, QLineEdit
 from PyQt5 import QtCore, QtGui
 
 from spotlight.suggestions.menu import MenuSuggestion
-from spotlight.handler import CommandHandler
 from ui.widgets import FunctionButtonsRow, SuggestRow, SvgButton
 from definitions import ASSETS_DIR
 from spotipy import Spotify
-from settings import default_themes
-
-from caching import SongQueue
+from settings import Theme
 
 
 class SpotlightUI(QWidget):
     QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)  # enable highdpi scaling
     QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)  # use highdpi icon-base
+    __instance__ = None
 
-    def __init__(self, sp: Spotify, song_queue: SongQueue, parent=None):
+    def __init__(self, sp: Spotify, command_handler, parent=None):
         QWidget.__init__(self, parent)
         # for spotify interaction
-        self.command_handler = CommandHandler(sp, song_queue)
+        self.command_handler = command_handler
         self.sp = sp
+        SpotlightUI.__instance__ = self
         # row positioning
         self.move(center_app())
         self.standard_row_height, self.small_row_height = [57, 47]
         self.resize(540, self.standard_row_height * 8)  # keep this, fixes weird bug
         # theming and style
-        self.active_theme = default_themes["dark"]  # TODO Use Properties Class to get theme when implemented
-        self.setStyleSheet(f"QWidget {{background: {self.active_theme.background};}}")
+        self.active_theme = None
+
         self.setWindowTitle('Spotlightify')
         self.setWindowOpacity(0.9)
         # global styling
@@ -59,23 +58,12 @@ class SpotlightUI(QWidget):
         self.textbox.setPlaceholderText("Spotlightify Search")
         self.textbox.resize(481, 41)
         self.textbox.installEventFilter(self)
-        self.textbox.setStyleSheet(f'''
-                        QLineEdit
-                        {{
-                            border: 0;
-                            background: {self.active_theme.background};
-                            color: {self.active_theme.foreground};
-                            font-size: 25px;
-                            border-radius: 2px;
-                            selection-background-color: #6f6f76;
-                            padding-left: 6px;
-                            padding-right: 6px;
-                        }}''')
         self.textbox.setFont(self.custom_font)
         # add grouped widgets
         self.function_row = FunctionButtonsRow(self, self.sp)
         self.function_row.move(0, 0)
         self.function_row.show()
+
         self.toggle_function_buttons()
 
         # Mac setting
@@ -220,6 +208,32 @@ class SpotlightUI(QWidget):
             else:
                 height = self.standard_row_height * (size + 1) + self.small_row_height
         self.resize(540, height)
+
+    def change_theme(self, theme: Theme):
+        self.active_theme = theme
+        self.svgWidget.load_svg(f"{ASSETS_DIR}svg{sep}spotify-logo.svg")  # reload Spotify Icon
+        self.setStyleSheet(f"QWidget {{background: {theme.background};}}")
+        self.textbox.setStyleSheet(f'''
+                                QLineEdit
+                                {{
+                                    border: 0;
+                                    background: {theme.background};
+                                    color: {theme.foreground};
+                                    font-size: 25px;
+                                    border-radius: 2px;
+                                    selection-background-color: {theme.hover};
+                                    padding-left: 6px;
+                                    padding-right: 6px;
+                                }}''')
+
+    @staticmethod
+    def get_instance():
+        instance = SpotlightUI.__instance__
+        if instance is None:
+            raise Exception("No SpotlightUI object has been instantiated")
+        else:
+            return instance
+
 
 
 def center_app():

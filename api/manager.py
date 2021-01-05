@@ -5,6 +5,7 @@ import clipboard
 import spotipy
 
 from api import misc, play, playback, toggle, check
+from settings.preferences import Preferences
 
 
 class PlaybackManager:
@@ -151,6 +152,8 @@ class PlaybackManager:
         else:
             print("[WARNING] Track not added to playlist as it is a duplicate")
 
+    def set_active_theme(self, theme):
+        Preferences.get_instance().current_theme = theme
 
     def exit_app(self):
         kill(getpid(), 9)

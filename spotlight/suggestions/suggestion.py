@@ -7,7 +7,8 @@ class Suggestion:
     The base abstract class for Suggestions.
     """
 
-    def __init__(self, title: str, description: str, icon_name: str, function: classmethod, fill_str: str, parameter: str, setting: str):
+    def __init__(self, title: str, description: str, icon_name: str, function: classmethod, fill_str: str,
+                 parameter: str, setting: str, stay_open=False):
         """
         :param title: title of the suggestion (displayed visually)
         :param description: description of the suggestion (displayed visually)
@@ -18,6 +19,7 @@ class Suggestion:
         :param fill_str: text which will fill the Spotlight search if setting variable is "fill"
         :param setting: what happens when the command is clicked/entered, this can be "exe" - calls the function,
                         "fill" - fills the fill_str to the textbox, "none" - does nothing when clicked
+        :param stay_open: controls whether or not the prompt closes when a suggestion is executed (setting=="exe")
         """
         self.__title = None
         self.__description = None
@@ -61,11 +63,13 @@ class Suggestion:
 
     @icon_name.setter
     def icon_name(self, value):
-        if type(value).__name__ != "str": raise Exception("Suggestion.icon_name must be of type str and (the name of an icon or album ID of cached album art)")
-        if len(value) == 22:  # checks whether the icon is album art or an svg asset from assets/svg/. Length of string determines this.
+        if type(value).__name__ != "str": raise Exception(
+            "Suggestion.icon_name must be of type str and (the name of an icon or album ID of cached album art)")
+        if len(
+                value) == 22:  # checks whether the icon is album art or an svg asset from assets/svg/. Length of string determines this.
             self.__icon_name = f"{CACHE_DIR}art{sep}{value}.jpg"
         else:
-            self.__icon_name = f"{ASSETS_DIR}svg{sep}{value if value!='' else 'no-texture'}.svg"
+            self.__icon_name = f"{ASSETS_DIR}svg{sep}{value if value != '' else 'no-texture'}.svg"
 
     @property
     def function(self):
@@ -75,7 +79,8 @@ class Suggestion:
     def function(self, value):
         if value == None:
             self.function = None
-        elif type(value).__name__ != "function": raise Exception("Suggestion.function must be of type function")
+        elif type(value).__name__ != "function":
+            raise Exception("Suggestion.function must be of type function")
         else:
             self.__function = value
 

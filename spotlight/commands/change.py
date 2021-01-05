@@ -50,11 +50,10 @@ class ShuffleCommand(Command):
         self.check_shuffle = CheckFunctions(self.sp).is_shuffle_on
 
     def get_suggestions(self, parameter=""):
+        current_state, next_state = "OFF", "ON"
         if parameter != "":
             return []
         if self.check_shuffle():
             current_state, next_state = "ON", "OFF"
-        else:
-            current_state, next_state = "OFF", "ON"
         return [ExecutableSuggestion("Shuffle", f"Shuffle is {current_state}. Turn {next_state}", "shuffle", PlaybackManager.toggle_shuffle)]
 

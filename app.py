@@ -13,8 +13,8 @@ from auth import config, AuthUI
 from caching import CacheManager, SongQueue, ImageQueue
 from colors import colors
 from definitions import ASSETS_DIR
-from settings import default_themes
 from shortcuts import listener
+from spotlight.handler import CommandHandler
 from ui import SpotlightUI
 
 from settings.preferences import Preferences
@@ -27,14 +27,12 @@ class App:
         self.app = QApplication([])
         self.app.setQuitOnLastWindowClosed(False)
 
-        self.theme = default_themes["dark"]
-
         self.tray = None
         self.tray_menu = None
         self.action_open = None
         self.action_exit = None
 
-        self.preferences = Preferences()
+        self.preferences = None
 
         self.oauth = None
         self.config = config
@@ -86,7 +84,9 @@ class App:
             self.image_queue = ImageQueue()
             self.cache_manager = CacheManager(self.spotify, self.song_queue, self.image_queue)
 
-            self.spotlight = SpotlightUI(self.spotify, self.song_queue)
+            command_handler = CommandHandler(self.spotify, self.song_queue)
+            self.spotlight = SpotlightUI(self.spotify, command_handler)
+            self.preferences = Preferences()
 
             self.show_spotlight()
             while True:
@@ -125,7 +125,6 @@ class App:
             mouse.click(Button.left)
             mouse.position = mouse_pos_before
 
-
         if kwargs and kwargs["reason"] != 3:
             # if kwargs contains "reason" this has been invoked by the tray icon being clicked
             # reason = 3 means the icon has been left-clicked, so anything other than a left click
@@ -139,10 +138,8 @@ class App:
         ui.function_row.refresh(None)  # refreshes function row button icons
         self.token_refresh()
 
-
         if "Windows" in platform():
             focus_windows()
-
 
     def token_refresh(self):
         try:

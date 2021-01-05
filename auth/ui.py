@@ -5,7 +5,7 @@ from PyQt5.QtGui import QFont, QIcon
 
 from caching.manager import CacheManager
 from auth.config import config
-from settings.themes import default_themes
+from settings.themes import themes
 from definitions import ASSETS_DIR
 from os import sep, environ
 
@@ -30,7 +30,7 @@ class AuthUI(QDialog):
         self.setWindowTitle("Spotlightify - Authentication")
         self.setWindowIcon(QIcon(f"{ASSETS_DIR}svg{sep}cog"))
 
-        self.setStyleSheet(f"background-color: {default_themes['dark'].background}; color: {default_themes['dark'].foreground}")
+        self.setStyleSheet(f"background-color: {themes['Dark'].background}; color: {themes['Dark'].foreground}")
 
         self.layout_widget = VerticalLayout(self)
         self.layout_widget.setGeometry(QRect(10, 10, 440, 160))

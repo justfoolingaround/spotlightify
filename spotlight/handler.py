@@ -2,6 +2,7 @@ from queue import Queue
 from spotipy import Spotify
 
 from auth import AuthUI
+from settings.preferences import Preferences
 
 from spotlight.commands.change import LikeCommand, RepeatCommand, ShuffleCommand
 from spotlight.commands.device import DeviceCommand
@@ -10,6 +11,7 @@ from spotlight.commands.playback import ResumeCommand, PreviousCommand, PauseCom
 from spotlight.commands.playing import PlayingCommand
 from spotlight.commands.search_online import SearchOnlineCommand
 from spotlight.commands.search_cache import SearchCacheCommand
+from spotlight.commands.theme import ThemeCommand
 from spotlight.suggestions.suggestion import Suggestion
 
 from caching.holder import CacheHolder
@@ -36,6 +38,7 @@ class CommandHandler:
                              SearchOnlineCommand("artist", sp),
                              SearchOnlineCommand("album", sp),
                              SearchOnlineCommand("playlist", sp),
+                             ThemeCommand(),
                              ResumeCommand(),
                              LikeCommand(sp),
                              RepeatCommand(),

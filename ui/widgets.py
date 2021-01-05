@@ -60,10 +60,19 @@ class FunctionButtonsRow(QWidget):
             button.move(gap, 13)
             gap += 70
 
-    def refresh(self, method):
+    def refresh(self, method):  # reloads svgs
+        """
+        Reloads Function Row SVGs and
+        :param method:
+        :return:
+        """
         if method is not None:
             method()
         checks = check.CheckFunctions(self.sp)
+
+        self.backward_button.load_svg(f"{ASSETS_DIR}svg{sep}backward.svg")
+        self.forward_button.load_svg(f"{ASSETS_DIR}svg{sep}forward.svg")
+
         if checks.is_song_liked():
             self.like_button.load_svg(f"{ASSETS_DIR}svg{sep}heart.svg")
         else:
@@ -127,11 +136,14 @@ class SuggestRow(QPushButton):
         self.set_style()
 
     def set_style(self):
-        # TODO: Add support for theming for icon and layout scalability components
         # set style and location of icon
         if "svg" in self.suggestion.icon_name:  # different location and sizes depending on icon type
-            self.icon.move(18, 18)
-            self.icon.resize(20, 20)
+            if f"{sep}t-" in self.suggestion.icon_name:  # specifically for theme icons
+                self.icon.move(12, 12)
+                self.icon.resize(32, 32)
+            else:
+                self.icon.move(18, 18)
+                self.icon.resize(20, 20)
             self.icon.setStyleSheet("background-color: rgba(0,0,0,0%);")
         else:
             self.icon.move(8, 8)
@@ -155,20 +167,20 @@ class SuggestRow(QPushButton):
             f"font-size: 13px; color: {self.active_theme.foreground}; background-color: rgba(0,0,0,0%);")
         self.description_lbl.setFont(self.custom_font)
         # style for widget
-        self.setStyleSheet('''
-        QPushButton {
+        self.setStyleSheet(f'''
+        QPushButton {{
             border: none;
-        }
-        QPushButton:hover {
-            background-color: #251e1e;
-        }
-        QPushButton:hover:focus {
-            background-color: #322828;
-        }
-        QPushButton:focus {
-            background-color: #3f3232;
+        }}
+        QPushButton:hover {{
+            background-color: {self.active_theme.hover};
+        }}
+        /* QPushButton:hover:focus {{ !!REMOVED!! Commented out as there isn't much point in having this.
+            background-color: #322828; Might change in the future
+        }} */
+        QPushButton:focus {{
+            background-color: {self.active_theme.focus};
             outline: 0px
-        }
+        }}
         ''')
 
     def show_option_icon(self):
