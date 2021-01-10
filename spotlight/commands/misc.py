@@ -11,7 +11,7 @@ class GoToCommand(Command):
         if parameter == "":
             return [FillSuggestion(self.title, self.description, "forward", "go to ")]
         else:
-            return [ExecutableSuggestion(f"{self.title} {parameter['parameter']}", self.description, "forward",
+            return [ExecutableSuggestion(f"{self.title} {parameter}", self.description, "forward",
                                          PlaybackManager.goto, parameter=parameter)]
 
 
