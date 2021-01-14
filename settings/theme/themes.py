@@ -62,6 +62,17 @@ class Theme(object):
     def accent(self, value):
         self.__accent = value
 
+    def to_dict(self) -> dict:
+        th_dict = {
+            "name": self.name,
+            "foreground": self.foreground,
+            "background": self.background,
+            "accent": self.accent,
+            "hover": self.hover,
+            "focus": self.focus
+        }
+        return th_dict
+
     @staticmethod
     def read_themes_from_file():
         """
@@ -74,9 +85,6 @@ class Theme(object):
         themes_dict = {}
         with open(f'{path}') as f:  # load themes JSON
             themes_dict = dict(json.load(f))
-
-            #   "Red": Theme("#191414", "#B3B3B3", "#FF0000"),
-            #   "Hannah Montana": Theme("#FF69B4", "#191414", "#191414")}
 
         items = dict(themes_dict).items()
         for key, values in items:  # load each theme

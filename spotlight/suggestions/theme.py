@@ -20,13 +20,9 @@ class ThemeMenuItems:
         return [CreateThemeMenuSuggestion(), ChangeThemeMenuSuggestion(), OpenThemeFolderSuggestion()]
 
 
-class CreateThemeMenuSuggestion(MenuSuggestion):
+class CreateThemeMenuSuggestion(ExecutableSuggestion):
     def __init__(self):
-        MenuSuggestion.__init__(self, "Create Theme", "Create your own Spotlightify theme", "theme-icon", "", [],
-                                fill_prefix=False)
-
-    def refresh_menu_suggestions(self):
-        self.menu_suggestions = []
+        ExecutableSuggestion.__init__(self, "Create Theme", "Create your own Spotlightify theme", "theme-icon", lambda: None)
 
 
 class ChangeThemeMenuSuggestion(MenuSuggestion):

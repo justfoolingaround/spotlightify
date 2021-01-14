@@ -1,1 +1,1 @@
-from settings.themes import Theme, themes
+from settings.theme.themes import Theme, themes

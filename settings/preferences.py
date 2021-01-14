@@ -1,7 +1,5 @@
-import json
-from definitions import CACHE_DIR
 from settings import themes
-from settings.themes import Theme
+from settings.theme.themes import Theme
 from auth import config
 from ui import SpotlightUI
 

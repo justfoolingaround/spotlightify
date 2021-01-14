@@ -1,13 +1,12 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QDialogButtonBox, QWidget, QLabel, QLineEdit, QErrorMessage, \
-    QMessageBox
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QDialogButtonBox, QWidget, QLabel, QLineEdit, QMessageBox
 from PyQt5.QtCore import Qt, QRect
 from PyQt5.QtGui import QFont, QIcon
 
 from caching.manager import CacheManager
 from auth.config import config
-from settings.themes import themes
+from settings.theme.themes import themes
 from definitions import ASSETS_DIR
-from os import sep, environ
+from os import sep
 
 
 class AuthUI(QDialog):

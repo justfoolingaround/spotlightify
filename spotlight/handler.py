@@ -3,6 +3,7 @@ from spotipy import Spotify
 
 from auth import AuthUI
 from settings.preferences import Preferences
+from settings.theme.ui import ThemeUI
 
 from spotlight.commands.change import LikeCommand, RepeatCommand, ShuffleCommand
 from spotlight.commands.device import DeviceCommand
@@ -26,6 +27,7 @@ class CommandHandler:
     def __init__(self, sp: Spotify, queue: Queue):
         self.sp = sp
         self.auth_ui = AuthUI()
+        self.theme_ui = ThemeUI()
         # store commands in a list
         # sp needed for some commands for some API functions i.e. check the state of song shuffle
         self.command_list = [SearchCacheCommand("song"),
@@ -91,6 +93,10 @@ class CommandHandler:
         try:
             if suggestion.title == "Authentication":  # opens Auth UI, needs changed at some point
                 self.auth_ui.show()
+            elif suggestion.title == "Create Theme":  # opens ThemeUI to create a theme
+                self.theme_ui.new_theme()
+            elif suggestion.title == "Edit Theme":  # opens ThemeUI to edit a theme
+                self.theme_ui.edit_theme(suggestion.parameter)
             elif suggestion.parameter == "":  # executes Suggestion's function
                 suggestion.function(self.manager)
             else:  # executes Suggestion's function with a string parameter
