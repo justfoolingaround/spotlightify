@@ -211,7 +211,7 @@ class SpotlightUI(QWidget):
 
     def change_theme(self, theme: Theme):
         self.active_theme = theme
-        self.svgWidget.load_svg(f"{ASSETS_DIR}svg{sep}spotify-logo.svg")  # reload Spotify Icon
+        self.svgWidget.load_svg(f"{ASSETS_DIR}svg{sep}spotify-logo.svg")  # reload Spotify icon
         self.setStyleSheet(f"QWidget {{background: {theme.background};}}")
         self.textbox.setStyleSheet(f'''
                                 QLineEdit

@@ -155,6 +155,9 @@ class PlaybackManager:
     def set_active_theme(self, theme):
         Preferences.get_instance().current_theme = theme
 
+    def delete_theme(self, theme):
+        pass
+
     def exit_app(self):
         kill(getpid(), 9)
 

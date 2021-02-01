@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QDialogButtonBox, QWidget, QLa
 from PyQt5.QtCore import Qt, QRect
 from PyQt5.QtGui import QFont, QIcon
 
-from settings.theme.themes import themes
+from settings.theme.themes import themes, Theme
 from definitions import ASSETS_DIR
 from os import sep
 
@@ -50,7 +50,8 @@ class ThemeUI(QDialog):
 
     def new_theme(self):
         self.setWindowTitle("Spotlightify Theme Config - New Theme")
-        self.theme_dict = {
+        # update theme dict without changing instance variable reference
+        new_dict = {
             "name": "",
             "foreground": "",
             "background": "",
@@ -58,40 +59,43 @@ class ThemeUI(QDialog):
             "hover": "",
             "focus": ""
         }
+        self.theme_dict.update(new_dict)
         for w in self.layout_widget.children():
             w.textbox.clear()  # erase contents of text boxes
         self.show()
 
     def edit_theme(self, theme):
         self.setWindowTitle(f"Spotlightify Theme Config - {theme.name}")
-        self.theme_dict = theme.to_dict()
+        # update theme dict without changing instance variable reference
+        new_dict = theme.to_dict()
+        self.theme_dict.update(new_dict)
         for w in self.layout_widget.children():
-            w.textbox.text = self.theme_dict[w.textbox.field]  # add content to text boxes
+            w.textbox.setText(self.theme_dict[w.field])  # add content to text boxes
         self.show()
 
     def save_changes(self):
         checks = self.check_validity()
         if checks == "":
-            # SAVE CODE HERE
+            th = Theme.dict_to_theme(self.theme_dict)
+            Theme.save_theme(th)
             self.close()
         else:
             QMessageBox.warning(self, "Error", "The fields below have not been filled in correctly:\n" +
                                 checks, QMessageBox.Ok)
 
     def check_validity(self) -> str:
-        widgets = self.layout_widget.children()
-        checks = [self.character_checks(), self.name_checks()]  # gets errors as an array of strings
-        if not any(checks):
+        self.checks = [self.character_checks(), self.name_checks()]  # gets errors as an array of strings
+        if not any(self.checks):
             return ""
         else:
-            return "\n".join([err for err in checks])
+            return "\n".join([err for err in self.checks])
 
     def character_checks(self) -> str:
         widgets = self.layout_widget.children()
         err = []
-        if all([w.text_complete for w in widgets]):
-            err.append([w.label.text() for w in widgets if not w.text_complete])
-        if not all([w.textbox.text[0] == "#" for w in widgets]):
+        if not all([w.text_complete for w in widgets]):
+            err.extend([w.label.text() for w in widgets if not w.text_complete])
+        elif not all([w.textbox.text()[0] == "#" for w in widgets if w.label.text() != "Theme Name"]):
             err.append("'#' must be put before each hex color value")
         if len(err) == 0:
             return ""
@@ -102,10 +106,15 @@ class ThemeUI(QDialog):
         pass
 
     def name_checks(self) -> str:
-        if self.theme_dict["name"] in themes:
-            return "Theme Name is already in use"
-        else:
-            return ""
+        return ""
+
+        # if self.theme_dict["name"] in themes.keys():
+        #     self.buttonBox = QDialogButtonBox(self)
+        #     self.buttonBox.setGeometry(QRect(10, 347, 300, 23))
+        #     self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel | QDialogButtonBox.Save)
+        #     self.buttonBox.accepted.connect(lambda: self.checks.append("Theme name is already in use"))
+        #     self.buttonBox.rejected.connect(self.close)
+        # return
 
 
 class VerticalLayout(QWidget):

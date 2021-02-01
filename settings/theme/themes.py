@@ -73,6 +73,37 @@ class Theme(object):
         }
         return th_dict
 
+    def save_theme(self):
+        themes[self.name] = self
+        th_fr_dict = {}  # format a themes dictionary
+        try:
+            for key, value in themes.items():  # get all themes into dictionary form
+                th_fr_dict[key] = themes[key].to_dict()
+        except Exception as ex:
+            print(ex)
+            return
+
+        path = f"{CACHE_DIR}themes.json"
+        try:
+            with open(path, 'w') as f:  # write all themes to the themes.json file
+                json_string = json.dumps(th_fr_dict, default=lambda o: o.__dict__, sort_keys=True, indent=2)
+                f.write(json_string)
+        except Exception as ex:
+            print(ex)
+
+        Theme.create_theme_icon(self)  # create the theme icon
+
+    @staticmethod
+    def dict_to_theme(theme_dict):
+        th = None
+        try:
+            th = Theme(theme_dict["name"], theme_dict["background"], theme_dict["foreground"], theme_dict["accent"],
+                       theme_dict["hover"], theme_dict["focus"])
+        except Exception as ex:
+            th = Theme("Dark", "#191414", "#B3B3B3", "#1ED760", "#251e1e", "#3f3232")  # returns a default dark theme obj
+            print(ex)
+        return th
+
     @staticmethod
     def read_themes_from_file():
         """
@@ -95,7 +126,6 @@ class Theme(object):
     def change_theme(theme):
         """
         Changes all SVG fills to the correct accent colour
-        :return:
         """
         try:
             if theme is None:

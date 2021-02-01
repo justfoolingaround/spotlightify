@@ -1,5 +1,5 @@
 from spotlight.commands.command import Command
-from spotlight.suggestions.theme import ThemeMenuSuggestion, ThemeMenuItems
+from spotlight.suggestions.theme import ThemeMenuSuggestion
 
 
 class ThemeCommand(Command):
@@ -9,5 +9,4 @@ class ThemeCommand(Command):
     def get_suggestions(self, parameter=""):
         if parameter == "":
             return [ThemeMenuSuggestion()]
-        return ThemeMenuItems.create_items()
 

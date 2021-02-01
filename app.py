@@ -133,13 +133,17 @@ class App:
 
         ui = self.spotlight
         ui.show()
-        ui.raise_()
+        print("ui shown")
+        # ui.raise_()
+        # print("ui raised")
         ui.activateWindow()
-        ui.function_row.refresh(None)  # refreshes function row button icons
+        print("ui activatedWindow")
+        # ui.function_row.refresh(None)  # refreshes function row button icons
         self.token_refresh()
-
+        print("refreshed token")
         if "Windows" in platform():
             focus_windows()
+        print("focused window")
 
     def token_refresh(self):
         try:
