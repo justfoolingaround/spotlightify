@@ -1,0 +1,97 @@
+/*
+ * @NOTE: Prepend a `~` to css file paths that are in your node_modules
+ *        See https://github.com/webpack-contrib/sass-loader#imports
+ */
+
+body {
+  margin: 0;
+  background-color: #191414;
+  font-family: SF Pro Display;
+  font-weight: normal;
+  -webkit-user-select: none;
+  overflow: hidden;
+}
+
+.main-container {
+
+}
+
+.suggestion-container {
+  display: flex;
+  flex-direction: column;
+  width: auto;
+}
+
+.suggestion {
+  padding: 10px 10px 10px 10px;
+  display: flex;
+  flex-direction: row;
+  width: auto;
+  height: 40px;
+  align-items: center;
+}
+
+.suggestion:hover {
+  padding: 10px 10px 10px 10px;
+  display: flex;
+  flex-direction: row;
+  width: auto;
+  height: 40px;
+  align-items: center;
+  background: #251e1e;
+}
+
+.suggestion-text-container {
+  display: flex;
+  margin-left: 10px;
+  flex-direction: column;
+}
+
+.suggestion-title {
+  font-size: 20px;
+  color: #B3B3B3;
+}
+
+.suggestion-description {
+  align-content: baseline;
+  font-size: 13px;
+  color: #B3B3B3;
+}
+
+.suggestion-icon {
+  align-content: baseline;
+  height: 30px;
+  width: 30px;
+}
+
+.logo {
+  height: 35px;
+  width: 35px;
+  float: left;
+}
+
+.prompt-container {
+  padding: 10px 10px 10px 10px;
+  display: flex;
+  flex-direction: row;
+  width: auto;
+  height: 100%;
+  align-items: center;
+  -webkit-app-region: drag;
+}
+
+.prompt-input {
+  width: auto;
+  flex-grow: 1;
+  height: 40px;
+  box-sizing: border-box;
+  background-color: #191414;
+  border: 0;
+  outline: 0;
+  padding: 10px;
+  font-size: 23px;
+  color: #B3B3B3;
+  font-family: SF Pro Display;
+  font-weight: normal;
+  -webkit-app-region: no-drag;
+}
