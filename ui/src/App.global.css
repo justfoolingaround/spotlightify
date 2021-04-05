@@ -68,6 +68,7 @@ body {
   height: 35px;
   width: 35px;
   float: left;
+  padding-right: 10px;
 }
 
 .prompt-container {
@@ -78,6 +79,20 @@ body {
   height: 100%;
   align-items: center;
   -webkit-app-region: drag;
+}
+
+.prompt-menu {
+  width:fit-content;
+  height: 19px;
+  font-size: 13px;
+  padding-top: 3px;
+  padding-right: 5px;
+  padding-left: 5px;
+  align-content: center;
+  text-align: center;
+  border-radius: 5px;
+  color: white;
+  background-color: #580339;
 }
 
 .prompt-input {

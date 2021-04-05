@@ -20,10 +20,17 @@ const Logo = () => {
   )
 }
 
+const Menu = (props: {value: string}) => {
+  return (
+    <div className="prompt-menu">{props.value}</div>
+  )
+}
+
 const Prompt = (props: {onChange: Function}) => {
   return (
     <div className="prompt-container">
       <Logo />
+      <Menu value="Song:" />
       <Input
         onChange={(value: string) => {
           props.onChange(value);
