@@ -3,7 +3,7 @@ import classNames from "classnames";
 
 import {Icon} from "../icon";
 
-import "./prompt.scss";
+import "./prompt.global.scss";
 
 interface PromptProps {
 	onChange(value: string): void

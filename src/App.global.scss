@@ -3,6 +3,10 @@
  *        See https://github.com/webpack-contrib/sass-loader#imports
  */
 
+* {
+	box-sizing: border-box;
+}
+
 body {
   margin: 0;
   background-color: #191414;
@@ -10,10 +14,6 @@ body {
   font-weight: normal;
   -webkit-user-select: none;
   overflow: hidden;
-}
-
-.main-container {
-
 }
 
 .suggestion-container {

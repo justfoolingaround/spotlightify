@@ -1,4 +1,28 @@
+@import "vars";
 
-.suggestion {
+.suggestion-container {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
 
+	.suggestion {
+		display: flex;
+		height: $itemHeight;
+		padding: $itemPadding;
+		background-color: $background;
+		transition: background-color $timing;
+
+		&:hover {
+			background-color: lighten($background, 10%);
+		}
+
+		&-icon {
+			width: 2rem;
+		}
+
+		&-text {
+			display: flex;
+			flex-direction: column;
+		}
+	}
 }

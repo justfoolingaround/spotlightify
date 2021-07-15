@@ -9,7 +9,7 @@ import { genId } from "./utils";
 import { Prompt } from "./components/prompt";
 import { Suggestion } from "./components/suggestion";
 
-import "./App.global.css";
+import "./App.global.scss";
 
 const Container = () => {
 	const { state, dispatch } = useAppContext();
@@ -37,7 +37,8 @@ const Container = () => {
 	return (
 		<div data-tid="container" className="main-container">
 			<Prompt onChange={handleChange} />
-			{state.suggestions.map((item: ISuggestion, index) => (
+
+			{state.suggestions.map(item => (
 				<Suggestion key={genId()} {...item} />
 			))}
 		</div>

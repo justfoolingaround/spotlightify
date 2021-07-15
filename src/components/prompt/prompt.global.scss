@@ -1,0 +1,10 @@
+@import "../../vars";
+
+.prompt {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	height: $itemHeight;
+	padding: $itemPadding;
+
+}

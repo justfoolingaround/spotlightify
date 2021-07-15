@@ -137,7 +137,7 @@ app
 	.whenReady()
 	// eslint-disable-next-line promise/always-return
 	.then(() => {
-		globalShortcut.register("CommandOrControl+Space", () => {
+		globalShortcut.register("Alt+Space", () => {
 			mainWindow?.show();
 			mainWindow?.focus();
 		});
