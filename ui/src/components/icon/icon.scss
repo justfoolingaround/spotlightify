@@ -1,0 +1,22 @@
+$iconSmall: 1rem;
+$iconMedium: 1.5rem;
+$iconLarge: 2rem;
+
+.icon {
+	fill: currentColor;
+
+	&-s {
+		width: $iconSmall;
+		height: $iconSmall;
+	}
+
+	&-m {
+		width: $iconMedium;
+		height: $iconMedium;
+	}
+
+	&-l {
+		width: $iconLarge;
+		height: $iconLarge;
+	}
+}
