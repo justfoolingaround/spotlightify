@@ -24,10 +24,10 @@
 			"prettier --ignore-path .eslintignore --parser json --write"
 		],
 		"*.{css,scss}": [
-			"prettier --ignore-path .eslintignore --single-quote --write"
+			"prettier --ignore-path .eslintignore --double-quote --write"
 		],
 		"*.{html,md,yml}": [
-			"prettier --ignore-path .eslintignore --single-quote --write"
+			"prettier --ignore-path .eslintignore --double-quote --write"
 		]
 	},
 	"build": {
@@ -261,7 +261,8 @@
 				}
 			}
 		],
-		"singleQuote": true
+		"trailingComma": "none",
+		"singleQuote": false
 	},
 	"renovate": {
 		"extends": [
@@ -270,10 +271,5 @@
 		"baseBranches": [
 			"next"
 		]
-	},
-	"husky": {
-		"hooks": {
-			"pre-commit": "lint-staged"
-		}
 	}
 }

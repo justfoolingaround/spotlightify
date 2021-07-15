@@ -1,17 +1,18 @@
 /* eslint-disable no-plusplus */
 import React from "react";
-import {BrowserRouter as Router, Route, Switch} from "react-router-dom";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
-import {AppActionType, AppProvider, useAppContext} from "./context";
-import {ISuggestion} from "./types";
+import { AppActionType, AppProvider, useAppContext } from "./context";
+import { ISuggestion } from "./types";
+import { genId } from "./utils";
 
-import {Prompt} from "./components/prompt";
-import {Suggestion} from "./components/suggestion";
+import { Prompt } from "./components/prompt";
+import { Suggestion } from "./components/suggestion";
 
 import "./App.global.css";
 
 const Container = () => {
-	const {state, dispatch} = useAppContext();
+	const { state, dispatch } = useAppContext();
 
 	const handleChange = (value: string) => {
 		// get suggestions here
@@ -22,7 +23,7 @@ const Container = () => {
 				return {
 					title: `Title ${id}`,
 					subtext: `Description ${id}`,
-					icon: "album",
+					icon: "album"
 				};
 			});
 		}
@@ -35,12 +36,12 @@ const Container = () => {
 
 	return (
 		<div data-tid="container" className="main-container">
-			<Prompt onChange={handleChange}/>
+			<Prompt onChange={handleChange} />
 			{state.suggestions.map((item: ISuggestion, index) => (
-				<Suggestion key={index} {...item}/>
+				<Suggestion key={genId()} {...item} />
 			))}
 		</div>
-	)
+	);
 };
 
 export const App = () => {

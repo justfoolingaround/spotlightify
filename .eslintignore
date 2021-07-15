@@ -26,6 +26,9 @@ build/Release
 # Dependency directory
 # https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
 node_modules
+yarn.lock
+LICENSE
+license
 
 # OSX
 .DS_Store
@@ -54,3 +57,8 @@ package.json
 *.css.d.ts
 *.sass.d.ts
 *.scss.d.ts
+
+**/*.gif
+**/*.json
+**/*.scss
+**/*.md
