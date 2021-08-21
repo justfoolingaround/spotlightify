@@ -149,11 +149,11 @@ ipcMain.on("window-resize", (e, dimensions) => {
 	try {
 		if (!mainWindow) return;
 
-		const {x, y} = mainWindow.getBounds();
+		const { x, y } = mainWindow.getBounds();
 		const windowSize = {
 			...dimensions,
-			x,
-			y
+			x: x + 1,
+			y: y + 1
 		};
 		mainWindow.setBounds(windowSize);
 	} catch (e) {
