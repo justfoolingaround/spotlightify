@@ -1,5 +1,10 @@
+import re
+
 import spotipy
+
 from api.limiter import Limiter
+
+TIME_REGEX = re.compile(r"(?:(?:(?P<hour>\d+):)?(?P<minute>\d+):)?(?P<second>\d+)")
 
 
 class PlaybackFunctions:
@@ -7,47 +12,91 @@ class PlaybackFunctions:
         self.sp = sp
 
     def skip(self):
-        try:
-            self.sp.next_track()
-        except:
-            print("[Error] Cannot skip track.")
+        return self.sp.run_coroutine_threadsafe(
+            self.sp.controller.next_track(
+                to_device=self.sp.client.cluster.active_device_id
+            )
+        )
 
     def pause(self):
-        try:
-            self.sp.pause_playback()
-        except:
-            print("[Error] Could not pause playback.")
+        if not self.sp.client.cluster.player_state.is_paused:
+            return self.sp.run_coroutine_threadsafe(
+                self.sp.controller.pause(
+                    to_device=self.sp.client.cluster.active_device_id
+                )
+            )
+        else:
+            return print("The player is already paused.")
 
     def resume(self):
-        try:
-            self.sp.start_playback()
-        except:
-            print("[Error] Could not resume playback.")
+        if self.sp.client.cluster.player_state.is_paused:
+            return self.sp.run_coroutine_threadsafe(
+                self.sp.controller.resume(
+                    to_device=self.sp.client.cluster.active_device_id
+                )
+            )
+        else:
+            return print("The player is already playing.")
 
     def previous(self):
-        try:
-            self.sp.previous_track()
-        except:
-            print("[Error]")
+        return self.sp.run_coroutine_threadsafe(
+            self.sp.controller.previous_track(
+                to_device=self.sp.client.cluster.active_device_id
+            )
+        )
 
     def goto(self, time):
-        try:
-            """Get Seconds from time."""
-            time_standard = str(time).count(":")
-            if time_standard == 1:
-                time = "0:" + str(time)
-            h, m, s = time.split(':')
-            time = (int(h) * 3600 + int(m) * 60 + int(s)) * 1000
-            self.sp.seek_track(time)
-        except:
-            print("[Error] Invalid time give. Valid command example: go to 1:40")
+
+        time_frame = TIME_REGEX.match(time)
+
+        if time_frame is None:
+            return print(
+                "Could not parse time. A valid time format may be 1:40, 40 or even 1:40:00."
+            )
+
+        time_in_seconds = 0
+
+        if time_frame.group("hour"):
+            time_in_seconds += int(time_frame.group("hour")) * 60 * 60
+
+        if time_frame.group("minute"):
+            time_in_seconds += int(time_frame.group("minute")) * 60
+
+        if time_frame.group("second"):
+            time_in_seconds += int(time_frame.group("second"))
+
+        print("seeking to " + str(time_in_seconds))
+        return self.sp.run_coroutine_threadsafe(
+            self.sp.controller.seek(
+                float(time_in_seconds * 1000),
+                to_device=self.sp.client.cluster.active_device_id,
+            )
+        )
 
     @Limiter.rate_limiter(seconds=10)
     def get_current_song_info(self) -> dict:
-        try:
-            song = self.sp.current_playback()["item"]
-            return {"name": song["name"], "artist": ", ".join([artist["name"] for artist in song["artists"]]),
-                    "image": song["album"]["id"], "id": song["id"]}
-        except:
-            print("[Error] could not get current song information.")
+
+        track = self.sp.client.cluster.player_state.track
+
+        if track is None:
             return {"name": "Nothing Currently Playing", "artist": ""}
+
+        track_id = track.uri[14:]
+
+        data = self.sp.run_coroutine_threadsafe(
+            self.sp.controller.query_entity_metadata(track_id, "track")
+        )
+
+        images = data["album"]["cover_group"]["image"]
+
+        if images:
+            image = "https://i.scdn.co/image/" + images[-1]["file_id"]
+        else:
+            image = None
+
+        return {
+            "name": data["name"],
+            "artist": ", ".join(artist["name"] for artist in data["artist"]),
+            "image": image,
+            "id": track_id,
+        }

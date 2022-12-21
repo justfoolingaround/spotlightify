@@ -1,22 +1,15 @@
-# Spotlightify
+# Spotlightify+
 
-Spotlightify is a GUI based application designed to allow users to quickly interact with the Spotify Desktop application across Windows, Linux and macOS.
+Spotlightify is a GUI based application designed to allow users to quickly interact with the Spotify Desktop application across Windows, Linux and macOS, originally found [here.](https://github.com/spotlightify/spotlightify)
+
+This is a fork that makes this project **work on a free Spotify account** by using [spotivents](https://github.com/justfoolingaround/spotivents).
 
 ![Spotlightify](preview.gif)
 
 ## Prerequisites
 
--   Spotify Premium Account
+-   Spotify's `sp_dc` cookie
 -   Python 3.7 or later
--   A Spotify App must also be created, the instructions follow:
-    1. Open the Spotify Developer Dashboard <a href="https://developer.spotify.com/dashboard/login" target="_blank">here</a> and login using your Spotify account credentials.
-    2. Click the "CREATE AN APP" button.
-    3. Name the application "Spotlightify", write anything for the description and select "Desktop App" from the checkboxes. Click "NEXT".
-    4. Respond with "No" to the question "Are you developing a commercial integration?".
-    5. Tick all boxes and click "SUBMIT".
-    6. Now on the dashboard, click "EDIT SETTINGS".
-    7. Under the title "Redirect URIs" enter: "http://localhost:8080", hit "ADD" and then at the bottom, hit "SAVE".
-    8. That is the App set up, keep the dashboard webpage open as we will need `Client ID` and `Client Secret` from it later on.
 
 ## Installing Dependencies
 
@@ -57,13 +50,6 @@ pip3 install -r requirements.txt
 python3 app.py
 ```
 
-### Linking the Spotify App
-
-Run `app.py` to start the application.
-
-On the Spotify App that you have created, take the values of `Client ID`, `Client Secret` and `Redirect URI` (Redirect URL is found when the "EDIT SETTINGS" button is clicked) from the website and input them into their respective textboxes. To make sure the correct username is entered into the `username` textbox, go to <a href="https://www.spotify.com/us/account/overview/" target="_blank">this link</a>, get your exact username string and paste it (you only need to do this if you sign into Spotify using a service such as Facebook).
-
-**On first start up, Spotlightify will cache all of your liked and playlist songs, caching both song information and album art. So keep the app open for at least 10 minutes so that all of your songs can be cached.**
 
 ### Installing Fonts
 

@@ -1,10 +1,10 @@
-from os import kill, getpid, environ
+from os import environ, getpid, kill
 from queue import Queue
 
 import clipboard
 import spotipy
 
-from api import misc, play, playback, toggle, check
+from api import check, misc, play, playback, toggle
 
 
 class PlaybackManager:
@@ -37,7 +37,7 @@ class PlaybackManager:
     def toggle_shuffle(self):
         self._toggle.shuffle()
 
-    def toggle_repeat(self, state="cycle"):
+    def toggle_repeat(self, state):
         self._toggle.repeat(state)
 
     def queue_song(self, id_: str):
@@ -84,12 +84,12 @@ class PlaybackManager:
         self.__play(id_, "playlist")
 
     def __play(self, id_: str, item_type: str):
-        '''
+        """
 
         :param id_: uri/id/term
         :param item_type: the format of song, either uri, id or term
         :return:
-        '''
+        """
         format_ = self._check.item_link_type(id_, item_type)
         if format_ == "uri":
             self._play.uri(id_)
@@ -120,7 +120,9 @@ class PlaybackManager:
         else:
             self._misc.set_device(id_)
 
-    def get_devices(self) -> list:  # Will probably not be needed here after command class has been broken up
+    def get_devices(
+        self,
+    ) -> list:  # Will probably not be needed here after command class has been broken up
         return self._misc.get_device_list()
 
     def current_song(self) -> dict:
@@ -133,7 +135,9 @@ class PlaybackManager:
         :return:
         """
         if id_ == "":
-            clipboard.copy(self.sp.current_playback()["item"]["external_urls"]["spotify"])
+            clipboard.copy(
+                self.sp.current_playback()["item"]["external_urls"]["spotify"]
+            )
         else:
             clipboard.copy(self.sp.track(id_)["external_urls"]["spotify"])
 
@@ -147,11 +151,11 @@ class PlaybackManager:
                 break
 
         if not is_duplicate:
-            self.sp.user_playlist_add_tracks(user, ids["playlist"], [f"spotify:track:{ids['song']}"])
+            self.sp.user_playlist_add_tracks(
+                user, ids["playlist"], [f"spotify:track:{ids['song']}"]
+            )
         else:
             print("[WARNING] Track not added to playlist as it is a duplicate")
 
-
     def exit_app(self):
         kill(getpid(), 9)
-

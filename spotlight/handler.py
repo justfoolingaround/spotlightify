@@ -1,57 +1,66 @@
 from queue import Queue
+
 from spotipy import Spotify
 
-from auth import AuthUI
-
+from api.manager import PlaybackManager
+from caching.holder import CacheHolder
 from spotlight.commands.change import LikeCommand, RepeatCommand, ShuffleCommand
 from spotlight.commands.device import DeviceCommand
-from spotlight.commands.misc import VolumeCommand, GoToCommand, ExitCommand, ShareCommand, AuthenticationCommand
-from spotlight.commands.playback import ResumeCommand, PreviousCommand, PauseCommand, NextCommand, SavedCommand
+from spotlight.commands.misc import (
+    AuthenticationCommand,
+    ExitCommand,
+    GoToCommand,
+    ShareCommand,
+    VolumeCommand,
+)
+from spotlight.commands.playback import (
+    NextCommand,
+    PauseCommand,
+    PreviousCommand,
+    ResumeCommand,
+    SavedCommand,
+)
 from spotlight.commands.playing import PlayingCommand
-from spotlight.commands.search_online import SearchOnlineCommand
 from spotlight.commands.search_cache import SearchCacheCommand
+from spotlight.commands.search_online import SearchOnlineCommand
 from spotlight.suggestions.suggestion import Suggestion
-
-from caching.holder import CacheHolder
-
-from api.manager import PlaybackManager
 
 
 class CommandHandler:
     """
     Handles commands and output suggestions for the Spotlight UI
     """
+
     def __init__(self, sp: Spotify, queue: Queue):
         self.sp = sp
-        self.auth_ui = AuthUI()
         # store commands in a list
         # sp needed for some commands for some API functions i.e. check the state of song shuffle
-        self.command_list = [SearchCacheCommand("song"),
-                             SearchCacheCommand("queue"),
-                             SearchCacheCommand("artist"),
-                             SearchCacheCommand("album"),
-                             SearchCacheCommand("playlist"),
-                             SearchOnlineCommand("song", sp),
-                             SearchOnlineCommand("queue", sp),
-                             SearchOnlineCommand("artist", sp),
-                             SearchOnlineCommand("album", sp),
-                             SearchOnlineCommand("playlist", sp),
-                             ResumeCommand(),
-                             LikeCommand(sp),
-                             RepeatCommand(),
-                             ShuffleCommand(sp),
-                             PlayingCommand(sp),
-                             PreviousCommand(),
-                             NextCommand(),
-                             PauseCommand(),
-                             VolumeCommand(),
-                             GoToCommand(),
-                             DeviceCommand(sp),
-                             SavedCommand(),
-                             ShareCommand(),
-                             AuthenticationCommand(),
-                             ExitCommand()
-                             ]
+        self.command_list = [
+            SearchCacheCommand("song"),
+            SearchCacheCommand("queue"),
+            SearchCacheCommand("artist"),
+            SearchCacheCommand("album"),
+            SearchCacheCommand("playlist"),
+            SearchOnlineCommand("song", sp),
+            SearchOnlineCommand("queue", sp),
+            SearchOnlineCommand("artist", sp),
+            SearchOnlineCommand("album", sp),
+            SearchOnlineCommand("playlist", sp),
+            ResumeCommand(),
+            LikeCommand(sp),
+            RepeatCommand(sp),
+            ShuffleCommand(sp),
+            PlayingCommand(sp),
+            PreviousCommand(),
+            NextCommand(),
+            PauseCommand(),
+            VolumeCommand(),
+            GoToCommand(),
+            DeviceCommand(sp),
+            SavedCommand(),
+            ShareCommand(),
+            ExitCommand(),
+        ]
 
         self.manager = PlaybackManager(sp, queue)
         # TODO create a settings json to store things like default device
@@ -64,7 +73,9 @@ class CommandHandler:
         :param text: Text from textbox widget on Spotlight UI
         :return: list of Suggestion objects corresponding to the text parameter
         """
-        CacheHolder.check_reload("all")  # Reloads cached suggestions if time since last reload has surpassed 5 minutes
+        CacheHolder.check_reload(
+            "all"
+        )  # Reloads cached suggestions if time since last reload has surpassed 5 minutes
         suggestions = []
         if text == "":
             return suggestions
@@ -72,7 +83,7 @@ class CommandHandler:
             prefix = command.prefix
             if prefix.startswith(text) or text.startswith(prefix):
                 if text > prefix:
-                    parameter = text[len(prefix):]
+                    parameter = text[len(prefix) :]
                 else:
                     parameter = ""
                 suggestions.extend(command.get_suggestions(parameter=parameter))
@@ -86,11 +97,13 @@ class CommandHandler:
         :param suggestion: Suggestion Object
         """
         try:
-            if suggestion.title == "Authentication":  # opens Auth UI, needs changed at some point
-                self.auth_ui.show()
+            if (
+                suggestion.title == "Authentication"
+            ):  # opens Auth UI, needs changed at some point
+                print("Auth")
             elif suggestion.parameter == "":  # executes Suggestion's function
                 suggestion.function(self.manager)
             else:  # executes Suggestion's function with a string parameter
                 suggestion.function(self.manager, suggestion.parameter)
-        except:
-            print("[Error] Command failed to execute")
+        except Exception as _:
+            print(f"[Error] Command failed to execute due to {_!r}")

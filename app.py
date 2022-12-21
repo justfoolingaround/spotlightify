@@ -1,28 +1,71 @@
+import asyncio
+import pathlib
 import sys
-from os import sep, kill, getpid
-from platform import platform
-from sys import exit
+import time
 from threading import Thread
 
+import aiohttp
+import orjson
+import requests
+import spotivents
+from pynput.mouse import Button, Controller
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QApplication, QMenu, QAction, QSystemTrayIcon
-from pynput.mouse import Controller, Button
+from PyQt5.QtWidgets import QAction, QApplication, QMenu, QSystemTrayIcon
+from rich.console import Console
+from rich.traceback import install
 from spotipy import Spotify
 
-from auth import config, AuthUI
-from caching import CacheManager, SongQueue, ImageQueue
-from colors import colors
+from caching import CacheManager, ImageQueue, SongQueue
 from definitions import ASSETS_DIR
 from settings import default_themes
+from settings.preferences import Preferences
 from shortcuts import listener
 from ui import SpotlightUI
 
-from settings.preferences import Preferences
+install()
+
+
+class SpotiventfulSpotfy(Spotify):
+    def __init__(self, cookie, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.cookie = cookie
+        self.loop = asyncio.new_event_loop()
+
+        self.loop.create_task(self.start_spotivents())
+        self.spotivents_thread = Thread(target=self.loop.run_forever, daemon=True)
+
+    async def start_spotivents(self):
+
+        self.session = aiohttp.ClientSession()
+        self.auth = spotivents.SpotifyAuthenticator(self.session, self.cookie)
+        self.client = spotivents.SpotifyClient(self.session, self.auth)
+        self.controller = spotivents.SpotifyAPIControllerClient(self.session, self.auth)
+
+        await self.client.run(is_blocking=False)
+
+        while self.client.cluster is None:
+            await asyncio.sleep(1.0)
+
+        if self.client.cluster.active_device_id is None:
+            for device_id, device in self.client.cluster.devices.items():
+                if device.can_play:
+                    return await self.controller.transfer_across_device(device_id)
+
+    def run_coroutine_threadsafe(self, coroutine):
+        future = asyncio.run_coroutine_threadsafe(coroutine, self.loop)
+        return future.result()
 
 
 class App:
-    def __init__(self):
-        print(f"{colors.PINK}{colors.BOLD}Welcome to Spotlightify{colors.RESET}\n\n")
+    def __init__(self, session_path: pathlib.Path = None):
+
+        self.console = Console()
+        self.session_file = session_path or pathlib.Path("session.json")
+        self.token_data = {}
+        self.http_session = requests.Session()
+
+        self.http_session.headers["User-Agent"] = "Lightify/1.0.0"
 
         self.app = QApplication([])
         self.app.setQuitOnLastWindowClosed(False)
@@ -36,37 +79,76 @@ class App:
 
         self.preferences = Preferences()
 
-        self.oauth = None
-        self.config = config
-
         self.spotlight = None
         self.spotify = None
-        self.oauth = None
-        self.token_info = None
 
-        self.listener_thread = Thread(target=listener, daemon=True, args=(self.show_spotlight,))
+        self.listener_thread = Thread(
+            target=listener, daemon=True, args=(self.show_spotlight,)
+        )
         self.song_queue = None
         self.image_queue = None
         self.cache_manager = None
 
-        self.run()
+    @property
+    def session(self):
+        if self.session_file.exists():
+            return orjson.loads(self.session_file.read_bytes())
+
+        return {}
+
+    @session.setter
+    def session(self, value):
+        self.session_file.write_bytes(orjson.dumps(value))
+
+    @property
+    def access_token_data(self):
+
+        if not self.token_data:
+            cookie = self.session.get("cookie")
+
+            if cookie is None:
+                raise RuntimeError("Unable to fetch user cookie.")
+
+            response = self.http_session.get(
+                "https://open.spotify.com/get_access_token",
+                cookies={"sp_dc": cookie},
+                params={
+                    "reason": "transport",
+                    "productType": "web_player",
+                },
+            )
+            response.raise_for_status()
+
+            self.token_data = response.json()
+
+        if self.token_data.get("accessTokenExpirationTimestampMs", 0) < (
+            time.time() * 1000
+        ):
+            self.token_data.clear()
+        else:
+            return self.token_data
+
+        return self.access_token_data
 
     def run(self):
-        # Pre checks in event of no config.json
-        # Validation dependencies
 
-        if not self.config.is_valid():
-            app = QApplication([])
-            app.setQuitOnLastWindowClosed(True)
-            auth = AuthUI()
+        cookie = self.session.get("cookie")
 
-            while not self.config.is_valid():
-                auth.show()
-                app.exec_()
-                if auth.isCanceled:
-                    sys.exit()
-        while True:
-            self.ui_invoke()
+        if cookie is None:
+            cookie = self.console.input("Spotify web player cookie [sp_dc]: ")
+
+        self.session = {"cookie": cookie}
+
+        try:
+            token = self.access_token_data["accessToken"]
+        except Exception as _:
+            self.console.print(
+                f"Suffered an unexpected error server side while using the cookie, please ensure it is valid. {_!r}"
+            )
+            self.session = {}
+            return self.run()
+
+        self.ui_invoke()
 
     def ui_invoke(self):
         """
@@ -74,26 +156,28 @@ class App:
         and invokes the UI.
         """
 
-        try:
-            print(f"{colors.BLUE}Starting auth process...{colors.RESET} \n\n ")
-            self.oauth = self.config.get_oauth()
-            self.token_info = self.oauth.get_access_token(as_dict=True)
-            self.spotify = Spotify(auth=self.token_info["access_token"])
-            self.init_tray()
+        self.spotify = SpotiventfulSpotfy(
+            self.session.get("cookie"), auth=self.access_token_data["accessToken"]
+        )
+        self.spotify.spotivents_thread.start()
 
-            self.listener_thread.start()
-            self.song_queue = SongQueue()
-            self.image_queue = ImageQueue()
-            self.cache_manager = CacheManager(self.spotify, self.song_queue, self.image_queue)
+        self.init_tray()
 
-            self.spotlight = SpotlightUI(self.spotify, self.song_queue)
+        self.song_queue = SongQueue()
+        self.image_queue = ImageQueue()
+        self.cache_manager = CacheManager(
+            self.spotify, self.song_queue, self.image_queue
+        )
+        self.cache_manager.start()
 
-            self.show_spotlight()
-            while True:
-                self.app.exec_()
+        self.spotlight = SpotlightUI(self.spotify, self.song_queue)
+        self.show_spotlight()
+        self.listener_thread.start()
 
-        except Exception as ex:
-            print(ex)
+        self.console.print("All systems ready, listening for shortcuts!")
+
+        while 1:
+            self.app.exec_()
 
     def init_tray(self):
         self.tray_menu = QMenu()
@@ -107,7 +191,9 @@ class App:
         self.tray_menu.addAction(self.action_exit)
 
         self.tray = QSystemTrayIcon()
-        self.tray.setIcon(QIcon(f"{ASSETS_DIR}img{sep}logo_small.png"))
+
+        icon_path = pathlib.Path(ASSETS_DIR) / "img" / "logo_small.png"
+        self.tray.setIcon(QIcon(icon_path.as_posix()))
         self.tray.setVisible(True)
         self.tray.setToolTip("Spotlightify")
         self.tray.setContextMenu(self.tray_menu)
@@ -125,7 +211,6 @@ class App:
             mouse.click(Button.left)
             mouse.position = mouse_pos_before
 
-
         if kwargs and kwargs["reason"] != 3:
             # if kwargs contains "reason" this has been invoked by the tray icon being clicked
             # reason = 3 means the icon has been left-clicked, so anything other than a left click
@@ -137,27 +222,15 @@ class App:
         ui.raise_()
         ui.activateWindow()
         ui.function_row.refresh(None)  # refreshes function row button icons
-        self.token_refresh()
 
-
-        if "Windows" in platform():
+        if sys.platform == "win32":
             focus_windows()
-
-
-    def token_refresh(self):
-        try:
-            if self.oauth.is_token_expired(token_info=self.token_info):
-                self.token_info = self.oauth.refresh_access_token(self.token_info["refresh_token"])
-                self.spotify.set_auth(self.token_info["access_token"])
-        except Exception as ex:
-            print(f"[WARNING] Could not refresh user API token \n \n {ex}")
 
     @staticmethod
     def exit():
-        print(f"\n{colors.PINK}{colors.BOLD}Exiting{colors.RESET}")
-        kill(getpid(), 3)
-        exit(0)
+        return sys.exit()
 
 
 if __name__ == "__main__":
-    App()
+    application = App()
+    application.run()

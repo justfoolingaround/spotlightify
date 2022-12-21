@@ -1,13 +1,15 @@
-from threading import Thread
-from os import path, sep, mkdir
-from json import load, dump
-from spotipy import Spotify
 from datetime import datetime, timedelta
-from colors import colors
-from requests import get
+from json import dump, load
+from os import mkdir, path, sep
+from threading import Thread
 from time import sleep
+
+from requests import get
+from spotipy import Spotify
+
+from caching.queues import ImageQueue, SongQueue
+from colors import colors
 from definitions import CACHE_DIR
-from caching.queues import SongQueue, ImageQueue
 
 songs_path = f"{CACHE_DIR}songs.json"
 playlists_path = f"{CACHE_DIR}playlists.json"
@@ -23,9 +25,6 @@ class CacheThread(Thread):
         self.song_queue = song_queue
         self.image_queue = image_queue
         self.is_working = False
-        self.title = self.get_title()
-
-        print(f"{self.title} Initialised")
 
     @staticmethod
     def open_if_exists(file_path: str, default_data: object):
@@ -42,7 +41,7 @@ class CacheThread(Thread):
     def save_data(file_path: str, data: object):
         try:
             with open(file_path, "w") as f:
-                dump(data, f, separators=(',', ':'))
+                dump(data, f, separators=(",", ":"))
         except:
             print(f"error saving {file_path}")
 
@@ -94,8 +93,6 @@ class CacheThread(Thread):
                 self.image_queue.put_image(file_id, url)
                 return
 
-        print("No valid image found")
-
     def get_all(self, initial_data: object, **kwargs):
         field = kwargs.get("field", None)
 
@@ -112,10 +109,6 @@ class CacheThread(Thread):
     def working(self):
         return self.is_working
 
-    def get_title(self):
-        name = self.__class__.__name__.replace("CacheThread", "").upper()
-        return f"[{colors.BLUE}CACHE{colors.RESET}] [{colors.YELLOW}{name}{colors.RESET}]"
-
     def process_songs(self, songs, file_path):
         self.is_working = True
 
@@ -130,7 +123,9 @@ class CacheThread(Thread):
                     continue
 
             if song["is_local"]:
-                print(f"{self.title} Skipping local track {colors.BOLD}{song['name']}{colors.RESET}")
+                print(
+                    f"{self.title} Skipping local track {colors.BOLD}{song['name']}{colors.RESET}"
+                )
                 continue
 
             self.get_image(song["album"]["id"], song["album"])
@@ -138,7 +133,7 @@ class CacheThread(Thread):
             data["songs"][song["id"]] = {
                 "name": song["name"],
                 "artist": self.combine_artists(song),
-                "image": song["album"]["id"]
+                "image": song["album"]["id"],
             }
 
         data["length"] = len(data["songs"])
@@ -153,7 +148,6 @@ class SongCacheThread(CacheThread):
         CacheThread.__init__(self, sp, song_queue, image_queue)
 
     def run(self):
-        print(f"{self.title} Starting")
 
         while True:
             song_data = []
@@ -188,13 +182,14 @@ class ImageCacheThread(CacheThread):
             image_path = art_path + file_name + ".jpg"
             if not path.isfile(image_path):
                 image_data = get(url).content
-                with open(image_path, 'wb') as handler:
+                with open(image_path, "wb") as handler:
                     handler.write(image_data)
         except:
-            print(f"Error occurred saving file {colors.RED}{file_name}.jpg{colors.RESET}")
+            print(
+                f"Error occurred saving file {colors.RED}{file_name}.jpg{colors.RESET}"
+            )
 
     def run(self):
-        print(f"{self.title} Starting")
 
         while True:
             while not self.image_queue.empty():
@@ -210,7 +205,6 @@ class PlaylistCacheThread(CacheThread):
         CacheThread.__init__(self, sp, song_queue, image_queue)
 
     def run(self):
-        print(f"{self.title} Starting")
 
         self.is_working = True
         default_data = self.default_data_template("playlists")
@@ -226,7 +220,7 @@ class PlaylistCacheThread(CacheThread):
             data["playlists"][playlist["id"]] = {
                 "name": playlist["name"],
                 "owner": playlist["owner"]["display_name"],
-                "image": playlist["id"]
+                "image": playlist["id"],
             }
 
         data["length"] = len(data["playlists"].keys())
@@ -246,7 +240,6 @@ class LikedCacheThread(CacheThread):
         CacheThread.__init__(self, sp, song_queue, image_queue)
 
     def run(self):
-        print(f"{self.title} Starting")
         self.is_working = True
         liked_data = self.get_all(self.sp.current_user_saved_tracks())
         self.song_queue.put(liked_data)
@@ -259,7 +252,6 @@ class AlbumCacheThread(CacheThread):
         CacheThread.__init__(self, sp, song_queue, image_queue)
 
     def run(self):
-        print(f"{self.title} Starting")
 
         self.is_working = True
         default_data = self.default_data_template("albums")
@@ -295,7 +287,7 @@ class AlbumCacheThread(CacheThread):
                 "name": album["name"],
                 "artist": self.combine_artists(album),
                 "image": album["id"],
-                "songs": songs_list
+                "songs": songs_list,
             }
 
         data["length"] = len(data["albums"].keys())
@@ -310,7 +302,6 @@ class ArtistCacheThread(CacheThread):
         CacheThread.__init__(self, sp, song_queue, image_queue)
 
     def run(self):
-        print(f"{self.title} Starting")
 
         self.is_working = True
         default_data = self.default_data_template("artists")
@@ -320,7 +311,9 @@ class ArtistCacheThread(CacheThread):
         if self.check_time(data["last_updated"]):
             return
 
-        artist_data = self.get_all(self.sp.current_user_followed_artists()["artists"], field="artists")
+        artist_data = self.get_all(
+            self.sp.current_user_followed_artists()["artists"], field="artists"
+        )
 
         for artist in artist_data:
             self.get_image(artist["id"], artist)
@@ -332,7 +325,7 @@ class ArtistCacheThread(CacheThread):
             data["artists"][artist["id"]] = {
                 "name": artist["name"],
                 "genre": genre,
-                "image": artist["id"]
+                "image": artist["id"],
             }
 
         data["length"] = len(data["artists"].keys())

@@ -1,9 +1,10 @@
 import spotipy
+
 from api import check
 
 
 class ToggleFunctions:
-    def __init__(self, sp: spotipy.Spotify):
+    def __init__(self, sp):
         self.sp = sp
         self._check = check.CheckFunctions(sp)
 
@@ -12,7 +13,7 @@ class ToggleFunctions:
         Likes the current song playing
         """
         try:
-            current_song_uri = current_song = self.sp.current_user_playing_track()["item"]["uri"]
+            current_song_uri = self.sp.current_user_playing_track()["item"]["uri"]
             if self._check.is_song_liked():
                 self.sp.current_user_saved_tracks_delete([current_song_uri])
             else:
@@ -21,35 +22,41 @@ class ToggleFunctions:
             print("[Error] Song like could not be toggled")
 
     def shuffle(self):
+        options = self.sp.client.cluster.player_state.options
+
+        if options is None:
+            return
+
         try:
-            if self._check.is_shuffle_on():
-                self.sp.shuffle(False)
-            else:
-                self.sp.shuffle(True)
-        except:
-            print("[Error] Shuffle could not be toggled")
+            return self.sp.run_coroutine_threadsafe(
+                self.sp.controller.set_shuffle(not options.shuffling_context)
+            )
+        except Exception as e:
+            print(f"[Error] Could not toggle shuffle due to: {e!r}")
 
     def playback(self):
-        try:
-            if self._check.is_song_playing():
-                self.sp.pause_playback()
-            else:
-                self.sp.start_playback()
-        except:
-            print("[Error] Playback could not be toggled")
 
-    def repeat(self, state="cycle"):
-        try:
-            state = state.lower()
-            if state == "cycle":
-                repeat_state = self._check.repeat_state()
-                if repeat_state == 'track':
-                    self.sp.repeat('off')
-                elif repeat_state == 'context':
-                    self.sp.repeat('track')
-                else:
-                    self.sp.repeat('context')
-            else:
-                self.sp.repeat(state)
-        except:
-            print("[Error] Could not change repeat type")
+        if self.sp.client.cluster.player_state.is_paused:
+            return self.sp.run_coroutine_threadsafe(self.sp.controller.resume())
+
+        return self.sp.run_coroutine_threadsafe(self.sp.controller.pause())
+
+    def repeat(self, state="context"):
+
+        if state == "context":
+
+            return self.sp.run_coroutine_threadsafe(
+                self.sp.controller.set_repeat(
+                    context=not self.sp.client.cluster.player_state.options.repeating_context
+                )
+            )
+
+        if state == "track":
+
+            return self.sp.run_coroutine_threadsafe(
+                self.sp.controller.set_repeat(
+                    track=not self.sp.client.cluster.player_state.options.repeating_track
+                )
+            )
+
+        raise ValueError(f"Invalid state: {state!r}")

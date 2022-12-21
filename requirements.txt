@@ -3,3 +3,6 @@ pynput
 spotipy
 requests
 clipboard
+orjson
+spotivents @ git+https://github.com/justfoolingaround/spotivents
+rich

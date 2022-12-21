@@ -8,3 +8,5 @@ cache
 venv
 __pycache__
 .cache-*
+
+session.json
